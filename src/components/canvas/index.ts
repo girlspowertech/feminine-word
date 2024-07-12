@@ -1,5 +1,4 @@
-import ComputersCanvas from "./Computers";
 import StarsCanvas from "./Stars";
-import WordArc from "./WordArc";
+import CircleChars from "./CircleChars";
 
-export {  ComputersCanvas, StarsCanvas, WordArc };
+export {  StarsCanvas, CircleChars };

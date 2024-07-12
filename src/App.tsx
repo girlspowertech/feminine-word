@@ -5,31 +5,15 @@ import {
   CircleChars,
 } from './components';
 
-// 娪
-// 娥
-// 奸
-// 娼
-// 妮
-// 媮
-// 妈
-// 嫖
-// 妇
-// 姣
-// 姦
-// 奻
-// 㚣
-// 𡛀
-// 婦
-// 婵
-// 姬
-// 娉
-// 嫎
+
 const App = () => {
+  const modules = import.meta.glob('/public/models/*.glb');
+  const gltfUrls = Object.keys(modules).slice(0, 25)
+
   return (
     <BrowserRouter>
       <StarsCanvas />
-      <CircleChars elements={['娪', '娥', '奸', '娼', '妮', '媮', '妈', '嫖', '妇', '姣', '姦', '奻', '㚣', '𡛀', '婦', '婵', '姬', '娉', '嫎']} />
-      {/* <WordArc /> */}
+      <CircleChars urls={ gltfUrls } />
     </BrowserRouter>
   );
 };
