@@ -1,6 +1,8 @@
-import { ComputersCanvas, StarsCanvas } from './canvas';
-
+import { ComputersCanvas, StarsCanvas, WordArc } from './canvas';
+import CircleChars from './CircleChars';
 export {
   ComputersCanvas,
-  StarsCanvas
+  StarsCanvas,
+  WordArc,
+  CircleChars
 }
