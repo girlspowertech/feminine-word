@@ -1,3 +1,4 @@
+import path from 'path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -6,10 +7,9 @@ export default defineConfig({
   base: process.env.GITHUB_ACTIONS === '1' ? '/feminine-word/' : '/',
   plugins: [react()],
   resolve: {
-    alias: [
-      { find: '@', replacement: './src' },
-      { find: 'components', replacement: './src/components' },
-      { find: 'utils', replacement: './src/utils' },
-    ],
+    alias: {
+      "@assets": path.resolve(__dirname, "public/assets/"),
+      "@": path.resolve(__dirname, "src/"),
+    },
   },
 })

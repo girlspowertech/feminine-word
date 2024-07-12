@@ -1,33 +1,48 @@
-import React, { useRef, useState } from 'react';
+import React, { FC, useRef, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { useDrag } from '@use-gesture/react';
+import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+import { modelFiles } from "@/utils/modelFiles";
 
 interface ModelProps {
   onClick: () => void;
-  url: string;
+  model: GLTF;
   position: [number, number, number];
   fontSize: number;
 }
 
-const Model: React.FC<ModelProps> = ({ url, position, fontSize, onClick }) => {
-  const { scene } = useGLTF(url);
+const Model: React.FC<ModelProps> = ({ model, position, fontSize, onClick }) => {
   const ref = useRef<THREE.Group>(null!);
 
   return (
     <group ref={ ref } position={ position } scale={ [fontSize, fontSize, fontSize] } onPointerDown={ onClick }>
-      <primitive object={ scene } />
+      <primitive object={ model.scene } />
     </group>
   );
 };
 
-const CircleTextCanvas: React.FC<{ urls: string[] }> = ({ urls }) => {
-  const [angle, setAngle] = useState(0);
-  const previousAngleRef = useRef<number>(0);
+const CircleTextCanvas: FC = () => {
+  const [models, setModels] = useState<{ path: string; model: GLTF; }[]>([]);
+  useEffect(() => {
+    const modelPromises = modelFiles.map(async (filename) => {
+      console.log(import.meta.env.BASE_URL);
+      const url = `${ import.meta.env.BASE_URL }models/${ filename }`;
+      const loader = new GLTFLoader();
+      const model = await loader.loadAsync(url);
+      return { path: url, model };
+    });
 
-  const radius = 5;
-  const maxFontSize = 4;
-  const minFontSize = 0.5;
+    Promise.all(modelPromises).then((loadedModels) => {
+      setModels(loadedModels);
+    });
+  }, []);
+
+  const [angle, setAngle] = useState(0);
+
+  const radius = 6;
+  const maxFontSize = 2;
+  const minFontSize = 0.2;
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const calculateFontSize = (index: number, total: number) => {
@@ -40,7 +55,7 @@ const CircleTextCanvas: React.FC<{ urls: string[] }> = ({ urls }) => {
   };
 
   const handleClick = (index: number) => {
-    const targetAngle = -((index / urls.length) * 2 * Math.PI);
+    const targetAngle = -((index / models.length) * 2 * Math.PI);
     const currentAngle = angle;
     let angleDifference = targetAngle - currentAngle;
 
@@ -86,15 +101,15 @@ const CircleTextCanvas: React.FC<{ urls: string[] }> = ({ urls }) => {
       <Canvas { ...bind() } camera={ { position: [0, 0, 10] } }>
         <ambientLight intensity={ 0.5 } />
         <pointLight position={ [10, 10, 10] } />
-        { urls.map((url, index) => {
-          const theta = (index / urls.length) * 2 * Math.PI + angle;
+        { models.map((model, index) => {
+          const theta = (index / models.length) * 2 * Math.PI + angle;
           const x = radius * Math.cos(theta);
           const y = radius * Math.sin(theta);
-          const fontSize = calculateFontSize(index, urls.length);
+          const fontSize = calculateFontSize(index, models.length);
           return (
             <Model
               key={ index }
-              url={ url }
+              model={ model.model }
               position={ [x, y, 0] }
               fontSize={ fontSize }
               onClick={ () => handleClick(index) }
