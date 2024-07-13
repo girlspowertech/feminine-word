@@ -1,22 +1,23 @@
-import React, { FC, useRef, useEffect, useState } from 'react';
+import React, { FC, useRef, useEffect, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
 import { useDrag } from '@use-gesture/react';
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { modelFiles } from "@/utils/modelFiles";
+import CanvasLoader from '../Loader';
 
 interface ModelProps {
   onClick: () => void;
   model: GLTF;
   position: [number, number, number];
   fontSize: number;
+  rotation?: [number, number, number];
 }
 
-const Model: React.FC<ModelProps> = ({ model, position, fontSize, onClick }) => {
+const Model: React.FC<ModelProps> = ({ model, position, rotation, fontSize, onClick }) => {
   const ref = useRef<THREE.Group>(null!);
 
   return (
-    <group ref={ ref } position={ position } scale={ [fontSize, fontSize, fontSize] } onPointerDown={ onClick }>
+    <group ref={ ref } position={ position } rotation={ rotation } scale={ [fontSize, fontSize, fontSize] } onPointerDown={ onClick }>
       <primitive object={ model.scene } />
     </group>
   );
@@ -26,7 +27,6 @@ const CircleTextCanvas: FC = () => {
   const [models, setModels] = useState<{ path: string; model: GLTF; }[]>([]);
   useEffect(() => {
     const modelPromises = modelFiles.map(async (filename) => {
-      console.log(import.meta.env.BASE_URL);
       const url = `${ import.meta.env.BASE_URL }models/${ filename }`;
       const loader = new GLTFLoader();
       const model = await loader.loadAsync(url);
@@ -60,6 +60,9 @@ const CircleTextCanvas: FC = () => {
     let angleDifference = targetAngle - currentAngle;
 
     angleDifference = ((angleDifference + Math.PI) % (2 * Math.PI)) - Math.PI;
+
+    if (angleDifference > Math.PI) angleDifference -= 2 * Math.PI;
+    else if (angleDifference < -Math.PI) angleDifference += 2 * Math.PI;
 
     const steps = 50;
     let step = 0;
@@ -99,23 +102,25 @@ const CircleTextCanvas: FC = () => {
   return (
     <div ref={ canvasRef } style={ { width: '100vw', height: '100vh' } }>
       <Canvas { ...bind() } camera={ { position: [0, 0, 10] } }>
-        <ambientLight intensity={ 0.5 } />
-        <pointLight position={ [10, 10, 10] } />
-        { models.map((model, index) => {
-          const theta = (index / models.length) * 2 * Math.PI + angle;
-          const x = radius * Math.cos(theta);
-          const y = radius * Math.sin(theta);
-          const fontSize = calculateFontSize(index, models.length);
-          return (
-            <Model
-              key={ index }
-              model={ model.model }
-              position={ [x, y, 0] }
-              fontSize={ fontSize }
-              onClick={ () => handleClick(index) }
-            />
-          );
-        }) }
+        <Suspense fallback={ <CanvasLoader /> } >
+          <ambientLight intensity={ 0.6 } />
+          <pointLight position={ [1, 10, 10] } />
+          { models.map((model, index) => {
+            const theta = (index / models.length) * 2 * Math.PI + angle;
+            const x = radius * Math.cos(theta);
+            const y = radius * Math.sin(theta);
+            const fontSize = calculateFontSize(index, models.length);
+            return (
+              <Model
+                key={ index }
+                model={ model.model }
+                position={ [x, y, 0] }
+                fontSize={ fontSize }
+                onClick={ () => handleClick(index) }
+              />
+            );
+          }) }
+        </Suspense>
       </Canvas>
     </div>
   );
