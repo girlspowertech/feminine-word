@@ -23,8 +23,16 @@ const Model: React.FC<ModelProps> = ({ model, position, rotation, fontSize, onCl
   );
 };
 
-const CircleTextCanvas: FC = () => {
+type CircleCharProps = {
+  onChoose: (char: string) => void
+};
+
+
+const CircleTextCanvas: FC<CircleCharProps> = (props) => {
+  const { onChoose } = props;
+
   const [models, setModels] = useState<{ path: string; model: GLTF; }[]>([]);
+
   useEffect(() => {
     const modelPromises = modelFiles.map(async (filename) => {
       const url = `${ import.meta.env.BASE_URL }models/${ filename }`;
@@ -71,6 +79,9 @@ const CircleTextCanvas: FC = () => {
       step += 1;
       const newAngle = currentAngle + (angleDifference * step) / steps;
       setAngle(newAngle);
+      if (step === steps) {
+        onChoose(modelFiles[index].split('.')[0]);
+      }
       if (step < steps) {
         requestAnimationFrame(animate);
       }
