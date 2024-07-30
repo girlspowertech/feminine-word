@@ -90,6 +90,11 @@ const CircleTextCanvas: FC<CircleCharProps> = (props) => {
     animate();
   };
 
+  const getActiveModel = () => {
+    const activeIndex = Math.floor((angle / (2 * Math.PI)) * models.length) % models.length;
+    return modelFiles[activeIndex];
+  }
+
   const bind = useDrag(({ movement: [mx, my], memo = angle, down, initial: [ix, iy] }) => {
     if (down && canvasRef.current) {
       const { left, top, width, height } = canvasRef.current.getBoundingClientRect();
@@ -107,12 +112,16 @@ const CircleTextCanvas: FC<CircleCharProps> = (props) => {
       setAngle(memo - theta / 30);
       return memo - theta / 30;
     }
+
     return memo;
+
   });
 
   return (
     <div ref={ canvasRef } style={ { width: '100vw', height: '100vh' } }>
-      <Canvas { ...bind() } camera={ { position: [0, 0, 10] } }>
+      <Canvas { ...bind() } camera={ { position: [0, 0, 10] } } onPointerUp={ () => {
+        onChoose(getActiveModel().split('.')[0]);
+      } }>
         <Suspense fallback={ <CanvasLoader /> } >
           <ambientLight intensity={ 0.6 } />
           <pointLight position={ [1, 10, 10] } />
